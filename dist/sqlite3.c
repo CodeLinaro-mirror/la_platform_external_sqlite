@@ -6453,7 +6453,6 @@ SQLITE_API int sqlite3_wal_checkpoint(sqlite3 *db, const char *zDb);
 /************** End of sqlite3.h *********************************************/
 // Begin Android Add
 #define SQLITE_BeginImmediate 0x00200000  /* Default BEGIN to IMMEDIATE */
-#define fdatasync fsync
 #undef __APPLE__
 // End Android Add
 /************** Continuing where we left off in sqliteInt.h ******************/
