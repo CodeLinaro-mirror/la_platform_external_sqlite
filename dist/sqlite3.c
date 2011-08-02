@@ -6503,6 +6503,7 @@ SQLITE_API int sqlite3_wal_checkpoint(sqlite3 *db, const char *zDb);
 // Begin Android Add
 #define SQLITE_BeginImmediate 0x00200000  /* Default BEGIN to IMMEDIATE */
 extern void sqlite3_androidopt_open(void*, const char*, unsigned, int*) __attribute__((weak));
+extern int  sqlite3_androidopt_handle_pragma(void*, char*, char*) __attribute__((weak));
 #undef __APPLE__
 // End Android Add
 /************** Continuing where we left off in sqliteInt.h ******************/
@@ -84618,7 +84619,13 @@ SQLITE_PRIVATE void sqlite3Pragma(
   if( sqlite3AuthCheck(pParse, SQLITE_PRAGMA, zLeft, zRight, zDb) ){
     goto pragma_out;
   }
- 
+
+  if( sqlite3_androidopt_handle_pragma ) {
+    if( sqlite3_androidopt_handle_pragma(db, zLeft, zRight) == 1 ) {
+      goto pragma_out;
+    }
+  }
+
 #ifndef SQLITE_OMIT_PAGER_PRAGMAS
   /*
   **  PRAGMA [database.]default_cache_size
