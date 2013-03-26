@@ -25,9 +25,7 @@
 #ifndef SQLITE_API
 # define SQLITE_API
 #endif
-extern void sqlite3_androidopt_init(void*, const char*) __attribute__((weak));
 extern void sqlite3_androidopt_open(void*, const char*, unsigned, int*) __attribute__((weak));
-extern void sqlite3_androidopt_close(void*) __attribute__((weak));
 extern int  sqlite3_androidopt_handle_pragma(void*, char*, char*) __attribute__((weak));
 
 /************** Begin file sqliteInt.h ***************************************/
@@ -113199,9 +113197,6 @@ SQLITE_API int sqlite3_close(sqlite3 *db){
   if( !sqlite3SafetyCheckSickOrOk(db) ){
     return SQLITE_MISUSE_BKPT;
   }
-  if (sqlite3_androidopt_close) {
-    sqlite3_androidopt_close(db);
-  }
   sqlite3_mutex_enter(db->mutex);
 
   /* Force xDestroy calls on all virtual tables */
@@ -114633,9 +114628,6 @@ static int openDatabase(
     }
   }
   sqlite3_mutex_enter(db->mutex);
-  if( sqlite3_androidopt_init ) {
-    sqlite3_androidopt_init(db, zFilename);
-  }
   db->errMask = 0xff;
   db->nDb = 2;
   db->magic = SQLITE_MAGIC_BUSY;
