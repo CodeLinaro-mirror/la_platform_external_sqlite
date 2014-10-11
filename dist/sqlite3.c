@@ -25426,11 +25426,7 @@ static struct unix_syscall {
                     aSyscall[13].pCurrent)
 #endif
 
-#if SQLITE_ENABLE_LOCKING_STYLE
   { "fchmod",       (sqlite3_syscall_ptr)fchmod,     0  },
-#else
-  { "fchmod",       (sqlite3_syscall_ptr)0,          0  },
-#endif
 #define osFchmod    ((int(*)(int,mode_t))aSyscall[14].pCurrent)
 
 #if defined(HAVE_POSIX_FALLOCATE) && HAVE_POSIX_FALLOCATE
@@ -25454,9 +25450,6 @@ static struct unix_syscall {
 
   { "fchown",       (sqlite3_syscall_ptr)fchown,          0 },
 #define osFchown    ((int(*)(int,uid_t,gid_t))aSyscall[20].pCurrent)
-
-  { "umask",        (sqlite3_syscall_ptr)umask,           0 },
-#define osUmask     ((mode_t(*)(mode_t))aSyscall[21].pCurrent)
 
 }; /* End of the overrideable system calls */
 
@@ -25561,20 +25554,20 @@ static const char *unixNextSystemCall(sqlite3_vfs *p, const char *zName){
 ** recover the hot journals.
 */
 static int robust_open(const char *z, int f, mode_t m){
-  int rc;
-  mode_t m2;
-  mode_t origM = 0;
-  if( m==0 ){
-    m2 = SQLITE_DEFAULT_FILE_PERMISSIONS;
-  }else{
-    m2 = m;
-    origM = osUmask(0);
+  int fd;
+  mode_t m2 = m ? m : SQLITE_DEFAULT_FILE_PERMISSIONS;
+  do{
+    fd = osOpen(z,f,m2);
+  }while( fd<0 && errno==EINTR );
+  if( fd>=0 ){
+    if( m!=0 ){
+      struct stat statbuf;
+      if( osFstat(fd, &statbuf)==0 && (statbuf.st_mode&0777)!=m ){
+        osFchmod(fd, m);
+      }
+    }
   }
-  do{ rc = osOpen(z,f,m2); }while( rc<0 && errno==EINTR );
-  if( m ){
-    osUmask(origM);
-  }
-  return rc;
+  return fd;
 }
 
 /*
