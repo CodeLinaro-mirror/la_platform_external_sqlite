@@ -1,6 +1,6 @@
 /******************************************************************************
 ** This file is an amalgamation of many separate C source files from SQLite
-** version 3.18.0.  By combining all the individual C code files into this
+** version 3.18.2.  By combining all the individual C code files into this
 ** single large file, the entire code can be compiled as a single translation
 ** unit.  This allows many compilers to do optimizations that would not be
 ** possible if the files were compiled separately.  Performance improvements
@@ -398,9 +398,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.18.0"
-#define SQLITE_VERSION_NUMBER 3018000
-#define SQLITE_SOURCE_ID      "2017-03-28 18:48:43 424a0d380332858ee55bdebc4af3789f74e70a2b3ba1cf29d84b9b4bcf3e2e37"
+#define SQLITE_VERSION        "3.18.2"
+#define SQLITE_VERSION_NUMBER 3018002
+#define SQLITE_SOURCE_ID      "2017-06-17 09:59:36 036ebf729e4b21035d7f4f8e35a6f705e6bf99887889e2dc14ebf2242e7930dd"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -67080,9 +67080,6 @@ SQLITE_PRIVATE int sqlite3BtreeInsert(
     ** btreeMoveto() call */
     if( (pCur->curFlags&BTCF_ValidNKey)!=0 && pX->nKey==pCur->info.nKey ){
       loc = 0;
-    }else if( (pCur->curFlags&BTCF_ValidNKey)!=0 && pX->nKey>0
-               && pCur->info.nKey==pX->nKey-1 ){
-      loc = -1;
     }else if( loc==0 ){
       rc = sqlite3BtreeMovetoUnpacked(pCur, 0, pX->nKey, flags!=0, &loc);
       if( rc ) return rc;
@@ -67133,12 +67130,18 @@ SQLITE_PRIVATE int sqlite3BtreeInsert(
       memcpy(newCell, oldCell, 4);
     }
     rc = clearCell(pPage, oldCell, &info);
-    if( info.nSize==szNew && info.nLocal==info.nPayload ){
+    if( info.nSize==szNew && info.nLocal==info.nPayload 
+     && (!ISAUTOVACUUM || szNew<pPage->minLocal)
+    ){
       /* Overwrite the old cell with the new if they are the same size.
       ** We could also try to do this if the old cell is smaller, then add
       ** the leftover space to the free list.  But experiments show that
       ** doing that is no faster then skipping this optimization and just
-      ** calling dropCell() and insertCell(). */
+      ** calling dropCell() and insertCell(). 
+      **
+      ** This optimization cannot be used on an autovacuum database if the
+      ** new entry uses overflow pages, as the insertCell() call below is
+      ** necessary to add the PTRMAP_OVERFLOW1 pointer-map entry.  */
       assert( rc==SQLITE_OK ); /* clearCell never fails when nLocal==nPayload */
       if( oldCell+szNew > pPage->aDataEnd ) return SQLITE_CORRUPT_BKPT;
       memcpy(oldCell, newCell, szNew);
@@ -198269,7 +198272,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2017-03-28 18:48:43 424a0d380332858ee55bdebc4af3789f74e70a2b3ba1cf29d84b9b4bcf3e2e37", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2017-06-17 09:59:36 036ebf729e4b21035d7f4f8e35a6f705e6bf99887889e2dc14ebf2242e7930dd", -1, SQLITE_TRANSIENT);
 }
 
 static int fts5Init(sqlite3 *db){
