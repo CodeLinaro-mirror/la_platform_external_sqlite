@@ -30672,6 +30672,10 @@ SQLITE_PRIVATE const char *sqlite3OpcodeName(int i){
 # include <sys/mount.h>
 #endif
 
+#if defined(__BIONIC__)
+# include <android/fdsan.h>
+#endif
+
 #ifdef HAVE_UTIME
 # include <utime.h>
 #endif
@@ -31422,6 +31426,12 @@ static int robust_open(const char *z, int f, mode_t m){
 #if defined(FD_CLOEXEC) && (!defined(O_CLOEXEC) || O_CLOEXEC==0)
     osFcntl(fd, F_SETFD, osFcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 #endif
+
+#if defined(__BIONIC__) && __ANDROID_API__ >= __ANDROID_API_Q__
+    uint64_t tag = android_fdsan_create_owner_tag(
+        ANDROID_FDSAN_OWNER_TYPE_SQLITE, fd);
+    android_fdsan_exchange_owner_tag(fd, 0, tag);
+#endif
   }
   return fd;
 }
@@ -31954,7 +31964,13 @@ static int unixLogErrorAtLine(
 ** and move on.
 */
 static void robust_close(unixFile *pFile, int h, int lineno){
+#if defined(__BIONIC__) && __ANDROID_API__ >= __ANDROID_API_Q__
+  uint64_t tag = android_fdsan_create_owner_tag(
+      ANDROID_FDSAN_OWNER_TYPE_SQLITE, h);
+  if( android_fdsan_close_with_tag(h, tag) ){
+#else
   if( osClose(h) ){
+#endif
     unixLogErrorAtLine(SQLITE_IOERR_CLOSE, "close",
                        pFile ? pFile->zPath : 0, lineno);
   }
