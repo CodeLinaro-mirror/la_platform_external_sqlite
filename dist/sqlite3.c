@@ -34428,7 +34428,7 @@ static int unixFileSize(sqlite3_file *id, i64 *pSize){
   SimulateIOError( rc=1 );
   if( rc!=0 ){
     storeLastErrno((unixFile*)id, errno);
-    return SQLITE_IOERR_FSTAT;
+    return unixLogError(SQLITE_IOERR_FSTAT, "fstat", ((unixFile*)id)->zPath);
   }
   *pSize = buf.st_size;
 
@@ -34464,7 +34464,7 @@ static int fcntlSizeHint(unixFile *pFile, i64 nByte){
     struct stat buf;              /* Used to hold return values of fstat() */
    
     if( osFstat(pFile->h, &buf) ){
-      return SQLITE_IOERR_FSTAT;
+      return unixLogError(SQLITE_IOERR_FSTAT, "fstat", pFile->zPath);
     }
 
     nSize = ((nByte+pFile->szChunk-1) / pFile->szChunk) * pFile->szChunk;
@@ -35139,7 +35139,7 @@ static int unixOpenSharedMemory(unixFile *pDbFd){
     ** with the same permissions.
     */
     if( osFstat(pDbFd->h, &sStat) ){
-      rc = SQLITE_IOERR_FSTAT;
+      rc = unixLogError(SQLITE_IOERR_FSTAT, "fstat", pDbFd->zPath);
       goto shm_open_err;
     }
 
@@ -118054,7 +118054,7 @@ static int sqlite3InitOne(sqlite3 *db, int iDb, char **pzErrMsg){
   }
   if( pDb->pSchema->file_format>SQLITE_MAX_FILE_FORMAT ){
     sqlite3SetString(pzErrMsg, db, "unsupported file format");
-    rc = SQLITE_ERROR;
+    rc = SQLITE_CORRUPT_BKPT; // Android Change from "rc = SQLITE_ERROR;";
     goto initone_error_out;
   }
 
@@ -152770,13 +152770,25 @@ SQLITE_PRIVATE int sqlite3Fts3Init(sqlite3 *db){
   ** module with sqlite.
   */
   if( SQLITE_OK==rc 
+#ifndef ANDROID    /* fts3_tokenizer disabled for security reasons */
    && SQLITE_OK==(rc = sqlite3Fts3InitHashTable(db, pHash, "fts3_tokenizer"))
+#endif
    && SQLITE_OK==(rc = sqlite3_overload_function(db, "snippet", -1))
    && SQLITE_OK==(rc = sqlite3_overload_function(db, "offsets", 1))
    && SQLITE_OK==(rc = sqlite3_overload_function(db, "matchinfo", 1))
    && SQLITE_OK==(rc = sqlite3_overload_function(db, "matchinfo", 2))
    && SQLITE_OK==(rc = sqlite3_overload_function(db, "optimize", 1))
   ){
+#ifdef SQLITE_ENABLE_FTS3_BACKWARDS
+    rc = sqlite3_create_module_v2(
+        db, "fts1", &fts3Module, (void *)pHash, 0
+        );
+    if(rc) return rc;
+    rc = sqlite3_create_module_v2(
+        db, "fts2", &fts3Module, (void *)pHash, 0
+        );
+    if(rc) return rc;
+#endif
     rc = sqlite3_create_module_v2(
         db, "fts3", &fts3Module, (void *)pHash, hashDestroy
     );
