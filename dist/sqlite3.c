@@ -1164,7 +1164,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.28.0"
 #define SQLITE_VERSION_NUMBER 3028000
-#define SQLITE_SOURCE_ID      "2020-01-17 15:33:47 b302b260ca9a4ca3d84771d9157fb1fc0b0e1ba175638f0c006cdf94f92a19c9"
+#define SQLITE_SOURCE_ID      "2020-05-06 18:46:38 b2325a6e1cfa19e9fd533c1f7dacfc8e5aa4f2e111fa066a5c7d3040418fc8ad"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -157813,6 +157813,9 @@ static int openDatabase(
 #if defined(SQLITE_DEFAULT_DEFENSIVE)
                  | SQLITE_Defensive
 #endif
+#if defined(SQLITE_DEFAULT_LEGACY_ALTER_TABLE)
+                 | SQLITE_LegacyAlter
+#endif
       ;
   sqlite3HashInit(&db->aCollSeq);
 #ifndef SQLITE_OMIT_VIRTUALTABLE
@@ -218362,7 +218365,7 @@ static void fts5SourceIdFunc(
 ){
   assert( nArg==0 );
   UNUSED_PARAM2(nArg, apUnused);
-  sqlite3_result_text(pCtx, "fts5: 2020-01-17 15:33:47 b302b260ca9a4ca3d84771d9157fb1fc0b0e1ba175638f0c006cdf94f92a19c9", -1, SQLITE_TRANSIENT);
+  sqlite3_result_text(pCtx, "fts5: 2020-05-06 18:46:38 b2325a6e1cfa19e9fd533c1f7dacfc8e5aa4f2e111fa066a5c7d3040418fc8ad", -1, SQLITE_TRANSIENT);
 }
 
 /*
@@ -223126,9 +223129,9 @@ SQLITE_API int sqlite3_stmt_init(
 #endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_STMTVTAB) */
 
 /************** End of stmt.c ************************************************/
-#if __LINE__!=223101
+#if __LINE__!=223104
 #undef SQLITE_SOURCE_ID
-#define SQLITE_SOURCE_ID      "2020-01-17 15:33:47 b302b260ca9a4ca3d84771d9157fb1fc0b0e1ba175638f0c006cdf94f92aalt2"
+#define SQLITE_SOURCE_ID      "2020-05-06 18:46:38 b2325a6e1cfa19e9fd533c1f7dacfc8e5aa4f2e111fa066a5c7d3040418falt2"
 #endif
 /* Return the source-id for this library */
 SQLITE_API const char *sqlite3_sourceid(void){ return SQLITE_SOURCE_ID; }
