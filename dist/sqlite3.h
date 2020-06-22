@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.28.0"
 #define SQLITE_VERSION_NUMBER 3028000
-#define SQLITE_SOURCE_ID      "2019-04-16 19:49:53 884b4b7e502b4e991677b53971277adfaf0a04a284f8e483e2553d0f83156b50"
+#define SQLITE_SOURCE_ID      "2020-05-06 18:46:38 b2325a6e1cfa19e9fd533c1f7dacfc8e5aa4f2e111fa066a5c7d3040418fc8ad"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -4928,7 +4928,8 @@ SQLITE_API int sqlite3_create_window_function(
 ** to [sqlite3_create_function()], [sqlite3_create_function16()], or
 ** [sqlite3_create_function_v2()].
 */
-#define SQLITE_DETERMINISTIC    0x800
+#define SQLITE_DETERMINISTIC    0x000000800
+#define SQLITE_DIRECTONLY       0x000080000
 
 /*
 ** CAPI3REF: Deprecated Functions
