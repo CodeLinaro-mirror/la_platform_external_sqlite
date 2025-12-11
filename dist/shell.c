@@ -13041,9 +13041,7 @@ static int wsToEol(const char *z){
 */
 static void eqp_append(ShellState *p, int iEqpId, int p2, const char *zText){
   EQPGraphRow *pNew;
-  i64 nText;
-  if( zText==0 ) return;
-  nText = strlen(zText);
+  int nText = strlen30(zText);
   if( p->autoEQPtest ){
     utf8_printf(p->out, "%d,%d,%s\n", iEqpId, p2, zText);
   }
@@ -13695,7 +13693,6 @@ static char *shell_error_context(const char *zSql, sqlite3 *db){
     while( (zSql[len]&0xc0)==0x80 ) len--;
   }
   zCode = sqlite3_mprintf("%.*s", len, zSql);
-  shell_check_oom(zCode);
   for(i=0; zCode[i]; i++){ if( IsSpace(zSql[i]) ) zCode[i] = ' '; }
   if( iOffset<25 ){
     zMsg = sqlite3_mprintf("\n  %z\n  %*s^--- error here", zCode, iOffset, "");
@@ -15201,8 +15198,6 @@ static int dump_callback(void *pArg, int nArg, char **azArg, char **azNotUsed){
   zTable = azArg[0];
   zType = azArg[1];
   zSql = azArg[2];
-  if( zTable==0 ) return 0;
-  if( zType==0 ) return 0;
   dataOnly = (p->shellFlgs & SHFLG_DumpDataOnly)!=0;
   noSys    = (p->shellFlgs & SHFLG_DumpNoSys)!=0;
 
