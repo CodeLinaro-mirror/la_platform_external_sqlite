@@ -93,9 +93,10 @@ cc_library_static {
     },
     apex_available: [
         "//apex_available:platform",
+        "com.android.bettertogether",
         "com.android.virt",
     ],
-
+    min_sdk_version: "apex_inherit",
 }
 
 // This static library is variant of libsqlite3_android built without the ICU
