@@ -186,6 +186,7 @@ cc_library {
     },
     apex_available: [
         "//apex_available:platform",
+        "com.android.bettertogether",
         "com.android.virt",
         // TODO: b/478278157 - remove the legacy one once all names are migrated
         "com.sdv.*",
