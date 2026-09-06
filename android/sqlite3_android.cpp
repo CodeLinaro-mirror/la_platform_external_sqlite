@@ -568,7 +568,7 @@ extern "C" int register_android_functions(sqlite3 * handle, int utf16Storage __a
     }
 
     // Register the _DELETE_FILE function
-    err = sqlite3_create_function(handle, "_DELETE_FILE", 1, SQLITE_UTF8, NULL, delete_file, NULL, NULL);
+    err = sqlite3_create_function(handle, "_DELETE_FILE", 1, SQLITE_UTF8 | SQLITE_DIRECTONLY, NULL, delete_file, NULL, NULL);
     if (err != SQLITE_OK) {
         return err;
     }
