@@ -1,5 +1,6 @@
 package {
     default_applicable_licenses: ["external_sqlite_android_license"],
+    default_team: "trendy_team_system_performance",
 }
 
 // Added automatically by a large-scale-change
